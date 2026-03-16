@@ -183,13 +183,34 @@
       font-size: 12px;
       letter-spacing: 0.02em;
     }
+    .brand {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(37,99,235,0.14);
+      border-radius: 14px;
+      padding: 8px 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .brand span {
+      background: linear-gradient(120deg, var(--teal), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   </style>
 </head>
   <body>
   <div class="photo-layer"></div>
+  <div class="brand">AI <span>BLOGGER</span></div>
   <div class="card">
     <div>
-      <div class="badge">AI Blogger · Gemini + Redis</div>
       <h1>Generate a Blog</h1>
       <p class="lead">Enter a topic and we’ll draft a 1000-word, SEO-ready post in seconds.</p>
     </div>
