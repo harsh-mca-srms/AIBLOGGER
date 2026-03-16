@@ -9,6 +9,11 @@ app.use(express.json());
 // Serve static files (e.g., index.html) from the project root.
 app.use(express.static(__dirname));
 
+// Explicit route for the root page.
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
+
 // Expect the Google API key to be provided via environment variable.
 // NOTE: Never hardcode secrets in source files.
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
