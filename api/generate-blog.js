@@ -1,4 +1,5 @@
 // Vercel serverless function for generating a blog via Google Gemini
+// Caches generated posts in Upstash Redis (Vercel KV-style) keyed by topic.
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -15,7 +16,26 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Please provide a topic" });
   }
 
+  // Lazy-load Redis client to keep cold starts small.
+  let redis = null;
+  const useRedis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (useRedis) {
+    const { Redis } = await import("@upstash/redis");
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN
+    });
+  }
+
   try {
+    // Serve from cache if present.
+    if (redis) {
+      const cached = await redis.get(`blog:${topic}`);
+      if (cached) {
+        return res.status(200).json({ blog: cached, cached: true });
+      }
+    }
+
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
     const modelId = process.env.GEMINI_MODEL_ID || "gemini-flash-latest";
@@ -27,6 +47,11 @@ module.exports = async function handler(req, res) {
 
     if (!text) {
       return res.status(500).json({ error: "No content returned from Gemini" });
+    }
+
+    // Cache the result for 6 hours if Redis is available.
+    if (redis) {
+      await redis.set(`blog:${topic}`, text, { ex: 6 * 60 * 60 });
     }
 
     return res.status(200).json({ blog: text });

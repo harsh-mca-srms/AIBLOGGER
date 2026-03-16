@@ -1,9 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
+const { Redis } = require("@upstash/redis");
 const app = express();
-
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN
+});
 app.use(cors());
 app.use(express.json());
 // Serve static files (e.g., index.html) from the project root.
