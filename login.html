@@ -155,8 +155,8 @@
   <a class="brand" href="/"><span>AI</span> Blogger</a>
   <div class="card">
     <div>
-      <h1>Welcome back</h1>
-      <p class="sub">Sign in to draft and manage your AI-generated blogs.</p>
+      <h1>Welcome</h1>
+      <p class="sub">Sign up or continue to start generating blogs.</p>
     </div>
     <div class="row">
       <label for="email">Email</label>
@@ -167,10 +167,10 @@
       <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
     <div class="actions">
-      <button id="login">Continue</button>
+      <button id="login">Sign up / Continue</button>
       <div id="status" class="muted"></div>
     </div>
-    <div class="muted">No account? <a href="#">Request access</a></div>
+    <div class="muted">Already have access? Just continue.</div>
   </div>
 
   <script>
@@ -178,7 +178,27 @@
     const statusEl = document.getElementById('status');
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      statusEl.textContent = 'Demo only: hook this to your auth provider.';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) {
+        statusEl.textContent = 'Please enter email and password.';
+        return;
+      }
+      statusEl.textContent = 'Saving...';
+      fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Signup failed');
+        statusEl.textContent = 'Saved. Redirecting...';
+        setTimeout(() => window.location.href = '/', 400);
+      })
+      .catch((err) => {
+        statusEl.textContent = 'Error: ' + err.message;
+      });
     });
   </script>
 </body>
