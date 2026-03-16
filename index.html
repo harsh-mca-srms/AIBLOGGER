@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Blogger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #f5f7ff 0, #ffffff 40%), radial-gradient(circle at 80% 0%, #eef5ff 0, #ffffff 35%);
+      color: #0f172a;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    .card {
+      width: min(900px, 92vw);
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+      padding: 28px 32px 32px;
+      display: grid;
+      gap: 16px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+    label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1e293b;
+    }
+    input, textarea, button {
+      font: inherit;
+    }
+    .row {
+      display: grid;
+      gap: 8px;
+    }
+    input[type="text"] {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      outline: none;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+    input[type="text"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    button {
+      justify-self: start;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(120deg, #2563eb, #7c3aed);
+      color: white;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.3);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(79, 70, 229, 0.4);
+    }
+    #status {
+      font-size: 14px;
+      color: #475569;
+      min-height: 20px;
+    }
+    #output {
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      min-height: 120px;
+      white-space: pre-wrap;
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div>
+      <h1>Generate a Blog</h1>
+      <p style="margin:6px 0 0; color:#475569;">Enter a topic and we’ll draft a 1000-word SEO-ready post.</p>
+    </div>
+    <div class="row">
+      <label for="topic">Topic</label>
+      <input id="topic" type="text" placeholder="e.g., Benefits of Yoga">
+    </div>
+    <div class="row">
+      <button id="generate">Generate</button>
+      <div id="status"></div>
+    </div>
+    <div class="row">
+      <label>Blog Draft</label>
+      <div id="output">Nothing yet.</div>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById('generate');
+    const topicInput = document.getElementById('topic');
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+
+    async function generate() {
+      const topic = topicInput.value.trim();
+      if (!topic) {
+        statusEl.textContent = 'Please enter a topic.';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = 'Generating...';
+      outputEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/generate-blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Request failed');
+        }
+
+        outputEl.textContent = data.blog || 'No content returned.';
+        statusEl.textContent = 'Done';
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + err.message;
+        outputEl.textContent = '';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener('click', generate);
+    topicInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        generate();
+      }
+    });
+  </script>
+</body>
+</html>
